@@ -1,0 +1,96 @@
+name: Build Custom Kali-T2 Kernel
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: false
+          swap-storage: false
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Prepare system and Kali source repositories
+        run: |
+          docker run --rm -v "${{ github.workspace }}:/workspace" kalilinux/kali-rolling:latest /bin/bash -c "cd /workspace && ./build.sh"
+
+
+      - name: Create Meta Package
+        run: |
+          cd ${{ github.workspace }}/build
+          sudo chown -R $USER:$USER .
+
+          IMAGE_DEB=$(ls linux-image-*.deb | grep -v "dbg" | head -n 1)
+          HEADERS_DEB=$(ls linux-headers-*.deb | head -n 1)
+          PACKAGE_IMAGE_NAME=$(dpkg-deb -f "$IMAGE_DEB" Package)
+          PACKAGE_HEADERS_NAME=$(dpkg-deb -f "$HEADERS_DEB" Package)
+          PACKAGE_VERSION=$(dpkg-deb -f "$IMAGE_DEB" Version)
+          META_PACKAGE_NAME="linux-image-kali-t2"
+
+          mkdir -p deb/DEBIAN
+          mkdir -p deb/usr/share/doc/${META_PACKAGE_NAME}
+          cp ../.github/copyright deb/usr/share/doc/${META_PACKAGE_NAME}/
+
+          cat <<EOF > deb/usr/share/doc/${META_PACKAGE_NAME}/changelog.Debian
+          ${META_PACKAGE_NAME} (${PACKAGE_VERSION}) unstable; urgency=low
+
+            * Initial release with T2 support for Kali Linux.
+
+           -- ${MAINTAINER_NAME} <${MAINTAINER_EMAIL}>  $(date -R)
+          EOF
+          gzip -n -9 deb/usr/share/doc/${META_PACKAGE_NAME}/changelog.Debian
+
+          cat <<EOF > deb/DEBIAN/control
+          Package: ${META_PACKAGE_NAME}
+          Version: ${PACKAGE_VERSION}
+          Architecture: amd64
+          Maintainer: ${MAINTAINER_NAME} <${MAINTAINER_EMAIL}>
+          Depends: ${PACKAGE_IMAGE_NAME} (= ${PACKAGE_VERSION}), ${PACKAGE_HEADERS_NAME} (= ${PACKAGE_VERSION})
+          Section: kernel
+          Priority: optional
+          Description: Meta-package for T2 Kernel (Based on Kali)
+           This package ensures that the correct Kali-based T2 kernel 
+           and headers are installed.
+          EOF
+
+          dpkg-deb --build --root-owner-group deb ${META_PACKAGE_NAME}.deb
+        env:
+          MAINTAINER_NAME: ${{ vars.MAINTAINER_NAME }}
+          MAINTAINER_EMAIL: ${{ vars.MAINTAINER_EMAIL }}
+      - name: Configure GPG Key
+        run: |
+          echo -n "$GPG_SIGNING_KEY" | base64 -di | gpg --import
+        env:
+          GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
+      - name: Create Repo
+        run: |
+          mkdir -p repo-output
+          mv build/*.deb repo-output/
+          cd repo-output
+
+          apt-ftparchive packages . > Packages
+          gzip -k -f Packages
+
+          apt-ftparchive release . > Release
+          gpg --batch --yes --armor --local-user "$GPG_SIGNING_EMAIL" --detach-sign -o Release.gpg Release
+          gpg --batch --yes --armor --local-user "$GPG_SIGNING_EMAIL" --clearsign -o InRelease Release
+          gpg --armor --export "$GPG_SIGNING_EMAIL" > KEY.gpg
+          gh release upload kali-rolling ./* --clobber
+        env:
+          GPG_SIGNING_EMAIL: ${{ secrets.GPG_SIGNING_EMAIL }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload .deb packages as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: kali-t2-kernel-packages
+          path: build/*.deb
+          retention-days: 5
