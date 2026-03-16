@@ -1,0 +1,22 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: linux
+Source: https://gitlab.com/kalilinux/packages/linux
+        Patches from https://github.com/t2linux/linux-t2-patches
+
+Files: *
+Copyright: 1991-2026 Linus Torvalds and others
+License: GPL-2
+
+Files: debian/*
+Copyright: 2026 Clement Gallois <8049428+clementgallois@users.noreply.github.com>
+           2024-2026 Kali Developers <devel@kali.org>
+           2024 Aditya Garg <gargaditya08@live.com>
+License: GPL-2
+
+License: GPL-2
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; version 2 dated June, 1991.
+ .
+ On Debian systems, the complete text of the GNU General Public
+ License version 2 can be found in `/usr/share/common-licenses/GPL-2'.
