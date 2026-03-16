@@ -1,3 +1,7 @@
+
+attempt to adapt t2linux kernel to kali-linux
+
+---------------------------------------------------------------------------
 # T2 Debian and Ubuntu Kernel
 
 Debian and Ubuntu/Mint kernel with Apple T2 patches built-in. This repo will try to keep up with kernel new releases.
