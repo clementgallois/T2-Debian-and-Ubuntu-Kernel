@@ -51,7 +51,7 @@ jobs:
           PACKAGE_IMAGE_NAME=$(dpkg-deb -f "$IMAGE_DEB" Package)
           PACKAGE_HEADERS_NAME=$(dpkg-deb -f "$HEADERS_DEB" Package)
           PACKAGE_VERSION=$(dpkg-deb -f "$IMAGE_DEB" Version)
-          META_PACKAGE_NAME="linux-image-kali-t2"
+          META_PACKAGE_NAME="linux-image-kali-t2-amd64"
 
           mkdir -p deb/DEBIAN
           mkdir -p deb/usr/share/doc/${META_PACKAGE_NAME}

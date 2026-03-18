@@ -116,8 +116,9 @@ cd /workspace/build/linux-*/
 
 ABI_NAME="kali"
 FEATURESET="t2"
+FLAVOUR="amd64"
 KERNEL_VERSION=$(dpkg-parsechangelog -S Version)
-make -j$(nproc) bindeb-pkg LOCALVERSION=+${ABI_NAME}-${FEATURESET}-amd64 KDEB_PKGVERSION=${KERNEL_VERSION}+t2
+make -j$(nproc) bindeb-pkg LOCALVERSION=+${ABI_NAME}-${FEATURESET}-${FLAVOUR} KDEB_PKGVERSION=${KERNEL_VERSION}+t2
 
 cd /workspace/build
 
