@@ -11,17 +11,17 @@ apt-get install -y git dpkg-dev build-essential bc kmod cpio flex bison libssl-d
 apt-get build-dep -y linux
 
 #get t2 linux patchs
-mkdir -p /workspace/t2_patches
-cd /workspace/t2_patches
-git init
-git remote add origin https://github.com/t2linux/linux-t2-patches.git
-# last commit in version 6.18
-git fetch --depth 1 origin 547fa06ff16ae131f2ae1083b17946384ddeb755
-git checkout FETCH_HEAD
-echo "======================="
-echo "last commit used:"
-echo "======================="
-git log -1 --format="%h - %ad : %s"
+# mkdir -p /workspace/t2_patches
+# cd /workspace/t2_patches
+# git init
+# git remote add origin https://github.com/t2linux/linux-t2-patches.git
+# # last commit in version 6.18
+# git fetch --depth 1 origin 547fa06ff16ae131f2ae1083b17946384ddeb755
+# git checkout FETCH_HEAD
+# echo "======================="
+# echo "last commit used:"
+# echo "======================="
+# git log -1 --format="%h - %ad : %s"
 
 
 mkdir -p /workspace/build && cd /workspace/build
@@ -29,7 +29,7 @@ mkdir -p /workspace/build && cd /workspace/build
 apt-get source linux
 cd /workspace/build/linux-*/
 
-for patch in /workspace/t2_patches/*.patch; do
+for patch in /workspace/linux-t2-patches/*.patch; do
     patch -Np1 < "$patch" || echo "possible conflict on $patch"
 done
 

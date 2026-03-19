@@ -31,6 +31,9 @@ jobs:
           swap-storage: false
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 1
       - name: Prepare system, Kali source repositories, and build kernel
         if: ${{ github.event.inputs.dry_run == 'false' }}
         run: |
