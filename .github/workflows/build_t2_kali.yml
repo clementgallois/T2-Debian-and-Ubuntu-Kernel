@@ -111,14 +111,38 @@ jobs:
         uses: actions/attest@v4
         with:
           subject-path: 'repo-output/*'
-      - name: Add files to release
+      - name: Add files to release (dry_run)
+        if: ${{ github.event.inputs.dry_run == 'true' }}
         run: |
-          echo "apt repo for kali-rolling" > notes.md
+          RELEASE_NAME=kali-rolling-dry-run
+          echo "apt repo for $RELEASE_NAME" > notes.md
           echo "" >> notes.md
           echo "[View GitHub Build Certificate]($BUILD_CERTIFICATE_URL)" >> notes.md
           
-          gh release upload kali-rolling repo-output/* --clobber
-          gh release edit kali-rolling --notes-file notes.md
+          # Delete old release if exists
+          gh release delete "$RELEASE_NAME" --yes --cleanup-tag || true
+
+          # Create the new release
+          gh release create "$RELEASE_NAME" \
+            --title "$RELEASE_NAME" \
+            --notes-file notes.md \
+            --target ${{ github.ref_name }} \
+            --draft=false \
+            --prerelease=true
+          gh release upload "$RELEASE_NAME" repo-output/* --clobber
+        env:
+          BUILD_CERTIFICATE_URL: ${{ steps.attest-repo.outputs.attestation-url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Add files to release
+        if: ${{ github.event.inputs.dry_run == 'false' }}
+        run: |
+          RELEASE_NAME=kali-rolling
+          echo "apt repo for $RELEASE_NAME" > notes.md
+          echo "" >> notes.md
+          echo "[View GitHub Build Certificate]($BUILD_CERTIFICATE_URL)" >> notes.md
+          
+          gh release upload "$RELEASE_NAME" repo-output/* --clobber
+          gh release edit "$RELEASE_NAME" --notes-file notes.md
         env:
           BUILD_CERTIFICATE_URL: ${{ steps.attest-repo.outputs.attestation-url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
